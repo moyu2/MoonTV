@@ -15,6 +15,18 @@ export async function middleware(request: NextRequest) {
   const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE || 'localstorage';
 
   if (!process.env.PASSWORD) {
+    if (
+      storageType === 'localstorage' &&
+      process.env.ALLOW_ANONYMOUS_LOCAL === 'true'
+    ) {
+      if (
+        /^\/(?:api\/)?admin(?:\/|$)/.test(pathname) ||
+        pathname === '/api/change-password'
+      ) {
+        return new NextResponse('Forbidden', { status: 403 });
+      }
+      return NextResponse.next();
+    }
     // 如果没有设置密码，重定向到警告页面
     const warningUrl = new URL('/warning', request.url);
     return NextResponse.redirect(warningUrl);
